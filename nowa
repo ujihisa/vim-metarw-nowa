@@ -16,11 +16,26 @@ class Nowa
     end
 
     def entry(entry_id, nowa_id, password=nil)
-      # mock
       password ||= password(nowa_id)
       n = Nowa.new(nowa_id, password)
       n.login
       n.entry(entry_id)
+    end
+
+    def create(text, nowa_id, password=nil)
+      password ||= password(nowa_id)
+      n = Nowa.new(nowa_id, password)
+      n.login
+      text = text.split(/\n/)
+      n.create(text[0], text[1..-2].join("\n"), text[-1])
+    end
+
+    def update(text, entry_id, nowa_id, password=nil)
+      password ||= password(nowa_id)
+      n = Nowa.new(nowa_id, password)
+      n.login
+      text = text.split(/\n/)
+      n.update(entry_id, text[0], text[1..-2].join("\n"), text[-1])
     end
 
     def password(nowa_id)
@@ -35,6 +50,7 @@ class Nowa
     @agent.user_agent_alias = 'Mac Safari'
   end
 
+  # login :: ()
   def login
     page = @agent.get 'http://my.nowa.jp'
     form = page.forms[0]
@@ -43,7 +59,7 @@ class Nowa
     @agent.submit form
   end
 
-  # entries -> [String]
+  # entries :: [String]
   def entries
     page = @agent.get 'http://my.nowa.jp/entry/'
     h = Hpricot(page.body)
@@ -54,14 +70,64 @@ class Nowa
     }
   end
 
-  # entry -> [String]
+  # entry :: [String]
   def entry(entry_id)
     page = @agent.get "http://my.nowa.jp/entry/edit?id=#{entry_id}"
     f = page.forms[0]
     [f.title] + f.body.split(/\n/) + [f.tag]
   end
+
+  # create :: IO
+  def create(title, body, tag)
+    page = @agent.get 'http://my.nowa.jp/entry/add'
+    form = page.forms[0]
+    form.title = title
+    form.body = self.class.magic_body(body)
+    form.tag = tag
+    @agent.submit form
+  end
+
+  # update :: IO
+  def update(entry_id, title, body, tag)
+    page = @agent.get "http://my.nowa.jp/entry/edit?id=#{entry_id}"
+    form = page.forms[0]
+    form.title = title
+    form.body = self.class.magic_body(body)
+    form.tag = tag
+    @agent.submit form
+  end
+
+  # magic_body :: String -> String
+  def self.magic_body(body)
+    body = body.gsub(%r|^http://.*|) {|m| %|<a href="#{m}">#{m}</a>| }
+    pre_p = false
+    body.enum_for(:each_line).map {|line|
+      if pre_p
+        if line.chomp == '|>'
+          pre_p = false
+          '</pre>'
+        else
+          line.gsub('<', '&lt;').gsub('>', '&gt;')
+        end
+      else
+        if line.chomp == '<|'
+          pre_p = true
+          '<pre>'
+        else
+          line
+        end
+      end
+    }.join
+  end
 end
 
 if __FILE__ == $0
-  puts Nowa.__send__(*ARGV)
+  case ARGV[0]
+  when 'create'
+    Nowa.create(STDIN.read, ARGV[1])
+  when 'update'
+    Nowa.update(STDIN.read, ARGV[1], ARGV[2])
+  else
+    puts Nowa.__send__(*ARGV)
+  end
 end

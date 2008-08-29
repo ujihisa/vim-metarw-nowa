@@ -84,7 +84,12 @@ endfunction
 
 
 function! metarw#nowa#write(fakepath, line1, line2, append_p)  "{{{2
-  return ['error', 'Writing to an object is not supported']
+  let _ = s:parse_incomplete_fakepath(a:fakepath)
+  if !!_.entry_id
+    return ['write', printf('!nowa update %s %s', _.entry_id, _.nowa_id)]
+  else
+    return ['write', printf('!nowa create %s', _.nowa_id)]
+  endif
 endfunction
 
 
