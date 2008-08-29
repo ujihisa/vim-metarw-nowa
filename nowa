@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+$KCODE = 'u'
+require 'yaml'
+
+require 'enumerator'
+require 'rubygems'
+require 'mechanize'
+
+class Nowa
+  class << self
+    def entries(nowa_id, password=nil)
+      password ||= password(nowa_id)
+      n = Nowa.new(nowa_id, password)
+      n.login
+      n.entries
+    end
+
+    def entry(entry_id, nowa_id, password=nil)
+      # mock
+      password ||= password(nowa_id)
+      n = Nowa.new(nowa_id, password)
+      n.login
+      n.entry(entry_id)
+    end
+
+    def password(nowa_id)
+      YAML.load_file(
+        File.expand_path('~/.nowa'))[nowa_id]
+    end
+  end
+
+  def initialize(nowa_id, password)
+    @nowa_id, @password = nowa_id, password
+    @agent = WWW::Mechanize.new
+    @agent.user_agent_alias = 'Mac Safari'
+  end
+
+  def login
+    page = @agent.get 'http://my.nowa.jp'
+    form = page.forms[0]
+    form.nowa_id = @nowa_id
+    form.password = @password
+    @agent.submit form
+  end
+
+  # entries -> [String]
+  def entries
+    page = @agent.get 'http://my.nowa.jp/entry/'
+    h = Hpricot(page.body)
+    (h/'#entrylisttbl'/:a).map {|link|
+      id = link[:href][/[0-9]+$/]
+      title = link.inner_text
+      "#{id}:#{title}"
+    }
+  end
+
+  # entry -> [String]
+  def entry(entry_id)
+    page = @agent.get "http://my.nowa.jp/entry/edit?id=#{entry_id}"
+    f = page.forms[0]
+    [f.title] + f.body.split(/\n/) + [f.tag]
+  end
+end
+
+if __FILE__ == $0
+  puts Nowa.__send__(*ARGV)
+end
