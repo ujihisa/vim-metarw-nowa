@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 $KCODE = 'u'
 require 'yaml'
-
-require 'enumerator'
 require 'rubygems'
 require 'mechanize'
 
@@ -10,32 +8,26 @@ class Nowa
   class << self
     def entries(nowa_id, password=nil)
       password ||= password(nowa_id)
-      n = Nowa.new(nowa_id, password)
-      n.login
-      n.entries
+      Nowa.new(nowa_id, password).entries
     end
 
     def entry(entry_id, nowa_id, password=nil)
       password ||= password(nowa_id)
-      n = Nowa.new(nowa_id, password)
-      n.login
-      n.entry(entry_id)
+      Nowa.new(nowa_id, password).entry(entry_id)
     end
 
     def create(text, nowa_id, password=nil)
       password ||= password(nowa_id)
-      n = Nowa.new(nowa_id, password)
-      n.login
       text = text.split(/\n/)
-      n.create(text[0], text[1..-2].join("\n"), text[-1])
+      Nowa.new(nowa_id, password).
+        create(text[0], text[1..-2].join("\n"), text[-1])
     end
 
     def update(text, entry_id, nowa_id, password=nil)
       password ||= password(nowa_id)
-      n = Nowa.new(nowa_id, password)
-      n.login
       text = text.split(/\n/)
-      n.update(entry_id, text[0], text[1..-2].join("\n"), text[-1])
+      Nowa.new(nowa_id, password).
+        update(entry_id, text[0], text[1..-2].join("\n"), text[-1])
     end
 
     def password(nowa_id)
@@ -45,17 +37,13 @@ class Nowa
   end
 
   def initialize(nowa_id, password)
-    @nowa_id, @password = nowa_id, password
     @agent = WWW::Mechanize.new
     @agent.user_agent_alias = 'Mac Safari'
-  end
 
-  # login :: ()
-  def login
     page = @agent.get 'http://my.nowa.jp'
     form = page.forms[0]
-    form.nowa_id = @nowa_id
-    form.password = @password
+    form.nowa_id = nowa_id
+    form.password = password
     @agent.submit form
   end
 

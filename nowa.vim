@@ -22,11 +22,10 @@
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
 " Interface  "{{{1
-" FIXME: metarw#nowa#complete is not implemented
+" FIXME: metarw#nowa#complete NOT IMPLEMENTED!
+"   Following is just copy from metarw-git
 function! metarw#nowa#complete(arglead, cmdline, cursorpos)  "{{{2
-  " FIXME: Support {git-dir} completion like -complete=file
-  " FIXME: *nix path separator assumption
-  " a:arglead always contains "git:".
+  " a:arglead always contains "nowa:".
   let _ = s:parse_incomplete_fakepath(a:arglead)
 
   let candidates = []
