@@ -18,14 +18,14 @@ class Nowa
 
     def create(text, nowa_id, password=nil)
       password ||= password(nowa_id)
-      text = text.split(/\n/)
+      text = text.split(/\n/, -1)
       Nowa.new(nowa_id, password).
         create(text[0], text[1..-2].join("\n"), text[-1])
     end
 
     def update(text, entry_id, nowa_id, password=nil)
       password ||= password(nowa_id)
-      text = text.split(/\n/)
+      text = text.split(/\n/, -1)
       Nowa.new(nowa_id, password).
         update(entry_id, text[0], text[1..-2].join("\n"), text[-1])
     end
@@ -62,7 +62,7 @@ class Nowa
   def entry(entry_id)
     page = @agent.get "http://my.nowa.jp/entry/edit?id=#{entry_id}"
     f = page.forms[0]
-    [f.title] + f.body.split(/\n/) + [f.tag]
+    [f.title] + f.body.split(/\n/, -1) + [f.tag]
   end
 
   # create :: IO
