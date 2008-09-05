@@ -1,0 +1,3 @@
+class Nowa
+  # dummy
+end
