@@ -20,14 +20,14 @@ class Nowa
       password ||= password(nowa_id)
       text = text.split(/\n/, -1)
       Nowa.new(nowa_id, password).
-        create(text[0], text[1..-2].join("\n"), text[-1])
+        create(text[0], text[1..-3].join("\n"), text[-2])
     end
 
     def update(text, entry_id, nowa_id, password=nil)
       password ||= password(nowa_id)
       text = text.split(/\n/, -1)
       Nowa.new(nowa_id, password).
-        update(entry_id, text[0], text[1..-2].join("\n"), text[-1])
+        update(entry_id, text[0], text[1..-3].join("\n"), text[-2])
     end
 
     def password(nowa_id)
