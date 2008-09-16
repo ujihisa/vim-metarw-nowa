@@ -87,7 +87,7 @@ endfunction
 
 function! metarw#nowa#write(fakepath, line1, line2, append_p)  "{{{2
   let _ = s:parse_incomplete_fakepath(a:fakepath)
-  if !!_.entry_id
+  if _.method == 'show'
     return ['write', printf('!nowa update %s %s', _.entry_id, _.nowa_id)]
   else
     return ['write', printf('!nowa create %s', _.nowa_id)]
@@ -111,7 +111,7 @@ function! s:parse_incomplete_fakepath(incomplete_fakepath)  "{{{2
   let _ = {}
 
   let fragments = split(a:incomplete_fakepath, ':', !0)
-  if  len(fragments) <= 2
+  if  len(fragments) <= 1
     echoerr 'Unexpected a:incomplete_fakepath:' string(a:incomplete_fakepath)
     throw 'metarw:nowa#e1'
   endif
@@ -122,7 +122,9 @@ function! s:parse_incomplete_fakepath(incomplete_fakepath)  "{{{2
   " {nowa_id}
   let _.nowa_id = fragments[1]
 
-  if fragments[2] == 'list'
+  if len(fragments) <= 2
+    let _.method = 'new'
+  elseif fragments[2] == 'list'
     let _.method = 'list'
   else
     let _.method = 'show'
