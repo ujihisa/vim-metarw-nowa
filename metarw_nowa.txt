@@ -57,7 +57,7 @@ NOTATIONS					*metarw-nowa-notations*
 In metarw-nowa, the following notations are available.
 
 						*nowa:{nowa-id}*
-nowa:{nowa-id}
+nowa:{nowa-id}:list
 	Show the result of "nowa entries {nowa-id}", where:
 	- {nowa-id} is your nowa-id. http://{nowa-id}.nowa.jp/
 

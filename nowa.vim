@@ -66,16 +66,19 @@ endfunction
 
 function! metarw#nowa#read(fakepath)  "{{{2
   let _ = s:parse_incomplete_fakepath(a:fakepath)
-  if !!_.entry_id
+  if _.method == 'show'
     return ['read', printf('!nowa entry %s %s', _.entry_id, _.nowa_id)]
-  else
+  elseif _.method == 'list'
     let s:browse = []
     for entry in split(system(printf('nowa entries %s', _.nowa_id)), "\n")
       let entry_id = split(entry, ":")[0]
       let s:browse = add(s:browse, {
-      \  'label': entry, 'fakepath': _.given_fakepath . ':' . entry_id})
+      \  'label': entry,
+      \  'fakepath': 'nowa:' . _.nowa_id . ':' . entry_id})
     endfor
     return ['browse', s:browse]
+  else
+    " TODO: error
   endif
 endfunction
 
@@ -103,11 +106,12 @@ function! s:parse_incomplete_fakepath(incomplete_fakepath)  "{{{2
   " scheme              {scheme} part in a:incomplete_fakepath (always 'nowa')
   "
   " nowa_id             'nowa:{nowa_id}:...'
-  " entry_id            'nowa:...:{entry_id}'
+  " entry_id            'nowa:...:{entry_id}' or nil
+  " method		'list' or 'show'
   let _ = {}
 
   let fragments = split(a:incomplete_fakepath, ':', !0)
-  if  len(fragments) <= 1
+  if  len(fragments) <= 2
     echoerr 'Unexpected a:incomplete_fakepath:' string(a:incomplete_fakepath)
     throw 'metarw:nowa#e1'
   endif
@@ -118,11 +122,12 @@ function! s:parse_incomplete_fakepath(incomplete_fakepath)  "{{{2
   " {nowa_id}
   let _.nowa_id = fragments[1]
 
-  if len(fragments) >= 3
+  if fragments[2] == 'list'
+    let _.method = 'list'
+  else
+    let _.method = 'show'
     " {entry_id}
     let _.entry_id = fragments[2]
-  else
-    let _.entry_id = ''
   endif
 
   return _
